@@ -1,0 +1,398 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Perfil {
+  id       Int       @id @default(autoincrement())
+  nome     String    @unique
+  usuarios Usuario[]
+}
+
+model Usuario {
+  id                Int       @id @default(autoincrement())
+  nome_completo     String
+  email             String    @unique
+  senha             String
+  telefone          String?
+  ativo             Boolean   @default(true)
+  data_criacao      DateTime  @default(now())
+  data_atualizacao  DateTime  @updatedAt
+
+  perfil_id         Int
+  perfil            Perfil    @relation(fields: [perfil_id], references: [id])
+
+  logs              Log[]
+  ordens_servico    OrdemServico[]
+  vendas            Venda[]
+  lancamentos_caixa LancamentoCaixa[]
+}
+
+model Log {
+  id            Int      @id @default(autoincrement())
+  modulo        String
+  operacao      String
+  entidade      String
+  origem        String?
+  dados_antigos Json?
+  dados_novos   Json?
+  data          DateTime @default(now())
+
+  usuario_id    Int
+  usuario       Usuario  @relation(fields: [usuario_id], references: [id])
+}
+
+model Cliente {
+  id               Int       @id @default(autoincrement())
+  nome             String
+  tipo             String
+  cpf_cnpj         String?   @unique
+  telefone_1       String?
+  telefone_2       String?
+  email            String?
+  observacao       String?
+  ativo            Boolean   @default(true)
+  data_criacao     DateTime  @default(now())
+  data_atualizacao DateTime  @updatedAt
+
+  logradouro       String?
+  numero           String?
+  complemento      String?
+  bairro           String?
+  cidade           String?
+  estado           String?
+  cep              String?
+
+  ordens_servico   OrdemServico[]
+  notificacoes     Notificacao[]
+  vendas           Venda[]
+  equipamentos     Equipamento[]
+}
+
+model Notificacao {
+  id         Int       @id @default(autoincrement())
+  titulo     String
+  mensagem   String
+  canal      String
+  tipo       String
+  status     String    @default("pendente")
+  data_envio DateTime?
+
+  cliente_id Int
+  cliente    Cliente   @relation(fields: [cliente_id], references: [id])
+}
+
+model TipoEquipamento {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique
+  equipamentos Equipamento[]
+}
+
+model Equipamento {
+  id             Int             @id @default(autoincrement())
+  nome           String
+  marca          String?
+  modelo         String?
+  serie_imei     String?
+  cor            String?
+  cod_etiqueta   String?
+  ativo          Boolean         @default(true)
+  data_cadastro  DateTime        @default(now())
+
+  tipo_id        Int
+  tipo           TipoEquipamento @relation(fields: [tipo_id], references: [id])
+
+  cliente_id     Int
+  cliente        Cliente         @relation(fields: [cliente_id], references: [id])
+
+  ordens_servico OrdemServico[]
+}
+
+model TipoOS {
+  id             Int            @id @default(autoincrement())
+  nome           String         @unique
+  descricao      String?
+  ordens_servico OrdemServico[]
+}
+
+model StatusOS {
+  id             Int            @id @default(autoincrement())
+  nome           String         @unique
+  descricao      String?
+  ordem_fluxo    Int?
+  terminal       Boolean        @default(false)
+  ordens_servico OrdemServico[]
+}
+
+model OrdemServico {
+  id                 Int       @id @default(autoincrement())
+  problema           String
+  diagnostico        String?
+  observacoes        String?
+  prazo_acordado     DateTime?
+  aprovado_por       String?
+  dias_garantia      Int?
+  expiracao_garantia DateTime?
+  valor_pecas        Decimal?  @db.Decimal(10, 2)
+  valor_total        Decimal?  @db.Decimal(10, 2)
+  data_abertura      DateTime  @default(now())
+  data_conclusao     DateTime?
+  data_cancelamento  DateTime?
+  data_retirada      DateTime?
+  data_criacao       DateTime  @default(now())
+  data_atualizacao   DateTime  @updatedAt
+
+  usuario_id     Int
+  usuario        Usuario      @relation(fields: [usuario_id], references: [id])
+
+  cliente_id     Int
+  cliente        Cliente      @relation(fields: [cliente_id], references: [id])
+
+  equipamento_id Int
+  equipamento    Equipamento  @relation(fields: [equipamento_id], references: [id])
+
+  tipo_os_id     Int
+  tipo_os        TipoOS       @relation(fields: [tipo_os_id], references: [id])
+
+  status_os_id   Int
+  status_os      StatusOS     @relation(fields: [status_os_id], references: [id])
+
+  imagens          Imagem[]
+  itens_servico    ItemServicoOS[]
+  pecas_utilizadas PecaPorOS[]
+  vendas           Venda[]
+}
+
+model TipoServico {
+  id             Int             @id @default(autoincrement())
+  nome           String
+  descricao      String?
+  preco_base     Decimal?        @db.Decimal(10, 2)
+  preco_estimado Decimal?        @db.Decimal(10, 2)
+  dias_garantia  Int?
+  ativo          Boolean         @default(true)
+  data_criacao   DateTime        @default(now())
+  itens_os       ItemServicoOS[]
+}
+
+model ItemServicoOS {
+  id             Int          @id @default(autoincrement())
+  descricao      String?
+  valor_unitario Decimal      @db.Decimal(10, 2)
+  valor_total    Decimal?     @db.Decimal(10, 2)
+  data_registro  DateTime     @default(now())
+
+  ordem_servico_id Int
+  ordem_servico    OrdemServico @relation(fields: [ordem_servico_id], references: [id])
+
+  tipo_servico_id  Int
+  tipo_servico     TipoServico  @relation(fields: [tipo_servico_id], references: [id])
+}
+
+model Imagem {
+  id           Int          @id @default(autoincrement())
+  url          String
+  data_criacao DateTime     @default(now())
+
+  ordem_servico_id Int
+  ordem_servico    OrdemServico @relation(fields: [ordem_servico_id], references: [id])
+}
+
+model Fornecedor {
+  id                  Int      @id @default(autoincrement())
+  nome_fantasia       String
+  cnpj                String?  @unique
+  telefone            String?
+  email               String?
+  contato_responsavel String?
+  observacoes         String?
+  ativo               Boolean  @default(true)
+  data_criacao        DateTime @default(now())
+
+  logradouro String?
+  numero     String?
+  complemento String?
+  bairro     String?
+  cidade     String?
+  estado     String?
+  cep        String?
+
+  movimentacoes MovimentacaoEstoque[]
+}
+
+model Peca {
+  id                Int      @id @default(autoincrement())
+  codigo            String?  @unique
+  nome              String
+  desc              String?
+  marca_compativel  String?
+  modelo_compativel String?
+  preco_custo       Decimal? @db.Decimal(10, 2)
+  preco_venda       Decimal? @db.Decimal(10, 2)
+  estoque_minimo    Int      @default(0)
+  estoque_atual     Int      @default(0)
+  localizacao       String?
+  ativo             Boolean  @default(true)
+  dt_criacao        DateTime @default(now())
+  dt_atualizacao    DateTime @updatedAt
+
+  movimentacoes MovimentacaoEstoque[]
+  pecas_por_os  PecaPorOS[]
+}
+
+model Produto {
+  id               Int      @id @default(autoincrement())
+  cod              String?  @unique
+  nome             String
+  desc             String?
+  categoria        String?
+  preco_custo      Decimal? @db.Decimal(10, 2)
+  preco_venda      Decimal? @db.Decimal(10, 2)
+  estoque_atual    Int      @default(0)
+  data_criacao     DateTime @default(now())
+  data_atualizacao DateTime @updatedAt
+
+  movimentacoes  MovimentacaoEstoque[]
+  produtos_venda ProdutoVenda[]
+}
+
+model TipoMovimentacao {
+  id            Int                   @id @default(autoincrement())
+  nome          String                @unique
+  tipo          String
+  desc          String?
+  movimentacoes MovimentacaoEstoque[]
+}
+
+model MovimentacaoEstoque {
+  id                Int      @id @default(autoincrement())
+  quantidade        Int
+  custo_unitario    Decimal? @db.Decimal(10, 2)
+  custo_total       Decimal? @db.Decimal(10, 2)
+  observacao        String?
+  data_movimentacao DateTime @default(now())
+
+  tipo_id Int
+  tipo    TipoMovimentacao @relation(fields: [tipo_id], references: [id])
+
+  peca_id Int?
+  peca    Peca? @relation(fields: [peca_id], references: [id])
+
+  produto_id Int?
+  produto    Produto? @relation(fields: [produto_id], references: [id])
+
+  fornecedor_id Int?
+  fornecedor    Fornecedor? @relation(fields: [fornecedor_id], references: [id])
+}
+
+model PecaPorOS {
+  id              Int      @id @default(autoincrement())
+  quantidade      Int
+  val_uni_custo   Decimal? @db.Decimal(10, 2)
+  val_uni_cobrado Decimal? @db.Decimal(10, 2)
+  val_total       Decimal? @db.Decimal(10, 2)
+  data_registro   DateTime @default(now())
+
+  ordem_servico_id Int
+  ordem_servico    OrdemServico @relation(fields: [ordem_servico_id], references: [id])
+
+  peca_id Int
+  peca    Peca @relation(fields: [peca_id], references: [id])
+}
+
+model FormaPagamento {
+  id           Int         @id @default(autoincrement())
+  nome         String      @unique
+  requer_troco Boolean     @default(false)
+  ativo        Boolean     @default(true)
+  pagamentos   Pagamento[]
+}
+
+model StatusPagamento {
+  id         Int         @id @default(autoincrement())
+  nome       String      @unique
+  descricao  String?
+  pagamentos Pagamento[]
+}
+
+model Venda {
+  id                  Int       @id @default(autoincrement())
+  numero              String?   @unique
+  tipo                String
+  status              String?
+  data                DateTime  @default(now())
+  observacoes         String?
+  desconto_total      Decimal?  @db.Decimal(10, 2)
+  valor_total         Decimal   @db.Decimal(10, 2)
+  data_cancelamento   DateTime?
+  motivo_cancelamento String?
+
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+
+  cliente_id Int?
+  cliente    Cliente? @relation(fields: [cliente_id], references: [id])
+
+  ordem_servico_id Int?
+  ordem_servico    OrdemServico? @relation(fields: [ordem_servico_id], references: [id])
+
+  produtos   ProdutoVenda[]
+  pagamentos Pagamento[]
+}
+
+model ProdutoVenda {
+  id          Int      @id @default(autoincrement())
+  quantidade  Int
+  valor_uni   Decimal  @db.Decimal(10, 2)
+  valor_total Decimal? @db.Decimal(10, 2)
+  descricao   String?
+
+  venda_id Int
+  venda    Venda @relation(fields: [venda_id], references: [id])
+
+  produto_id Int
+  produto    Produto @relation(fields: [produto_id], references: [id])
+}
+
+model Pagamento {
+  id          Int      @id @default(autoincrement())
+  valor_pago  Decimal  @db.Decimal(10, 2)
+  troco       Decimal? @db.Decimal(10, 2)
+  parcelas    Int      @default(1)
+  data        DateTime @default(now())
+
+  venda_id Int
+  venda    Venda @relation(fields: [venda_id], references: [id])
+
+  forma_pagamento_id Int
+  forma_pagamento    FormaPagamento @relation(fields: [forma_pagamento_id], references: [id])
+
+  status_pagamento_id Int
+  status_pagamento    StatusPagamento @relation(fields: [status_pagamento_id], references: [id])
+}
+
+model Caixa {
+  id          Int               @id @default(autoincrement())
+  nome        String
+  ativo       Boolean           @default(true)
+  lancamentos LancamentoCaixa[]
+}
+
+model LancamentoCaixa {
+  id        Int      @id @default(autoincrement())
+  tipo      String
+  categoria String?
+  descricao String?
+  observacoes String?
+  valor     Decimal  @db.Decimal(10, 2)
+  data      DateTime @default(now())
+
+  caixa_id Int
+  caixa    Caixa @relation(fields: [caixa_id], references: [id])
+
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+}

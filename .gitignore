@@ -1,0 +1,14 @@
+node_modules
+dist/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+dist
+/src/generated/prisma
+.agents
+.claude
+.windsurf/
+skills-lock.json
