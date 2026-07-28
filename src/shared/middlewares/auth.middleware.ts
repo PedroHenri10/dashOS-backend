@@ -14,13 +14,26 @@ declare global {
   }
 }
 
+function isJwtPayload(value: unknown): value is JwtPayload {
+  if (typeof value !== 'object' || value === null) return false
+
+  const candidate = value as Partial<JwtPayload>
+  return typeof candidate.sub === 'number' && typeof candidate.nome === 'string' && typeof candidate.perfil === 'string'
+}
+
 export function autenticar(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) throw new NaoAutorizadoError()
 
   const token = authHeader.split(' ')[1]
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!)
+
+    if (!isJwtPayload(decoded)) {
+      throw new NaoAutorizadoError()
+    }
+
+    req.user = decoded
     next()
   } catch {
     throw new NaoAutorizadoError()
