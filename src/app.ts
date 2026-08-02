@@ -3,9 +3,6 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import { errorMiddleware } from './shared/middlewares/error.middleware'
-import { authRouter } from './modules/auth/auth.routes'
-import { usuariosRouter } from './modules/usuarios/usuarios.routes'
-import { clientesRouter }   from './modules/clientes/clientes.routes'
 
 const app = express()
 
@@ -17,9 +14,32 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() })
 })
 
-app.use('/auth', authRouter) 
-app.use('/usuarios', usuariosRouter) 
-app.use('/clientes', clientesRouter)
+app.use('/auth', async (_req, res, next) => {
+  try {
+    const { authRouter } = await import('./modules/auth/auth.routes')
+    return authRouter(_req, res, next)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.use('/usuarios', async (_req, res, next) => {
+  try {
+    const { usuariosRouter } = await import('./modules/usuarios/usuarios.routes')
+    return usuariosRouter(_req, res, next)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.use('/clientes', async (_req, res, next) => {
+  try {
+    const { clientesRouter } = await import('./modules/clientes/clientes.routes')
+    return clientesRouter(_req, res, next)
+  } catch (error) {
+    next(error)
+  }
+})
 
 app.use(errorMiddleware)
 
