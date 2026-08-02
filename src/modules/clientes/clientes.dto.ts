@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const CriarClienteSchema = z.object({
   nome:      z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  tipo:      z.enum(['PF', 'PJ'], { errorMap: () => ({ message: 'Tipo deve ser PF ou PJ' }) }),
+  tipo: z.enum(['PF', 'PJ'], { message: 'Tipo deve ser PF ou PJ' }),
   cpf_cnpj:  z.string().optional(),
   telefone_1: z.string().min(8, 'Telefone inválido'),
   telefone_2: z.string().optional(),

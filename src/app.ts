@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import { errorMiddleware } from './shared/middlewares/error.middleware'
 import { authRouter } from './modules/auth/auth.routes'
 import { usuariosRouter } from './modules/usuarios/usuarios.routes'
+import { clientesRouter }   from './modules/clientes/clientes.routes'
 
 const app = express()
 
@@ -18,6 +19,7 @@ app.get('/health', (req, res) => {
 
 app.use('/auth', authRouter) 
 app.use('/usuarios', usuariosRouter) 
+app.use('/clientes', clientesRouter)
 
 app.use(errorMiddleware)
 
