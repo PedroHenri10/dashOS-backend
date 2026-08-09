@@ -1,27 +1,50 @@
+import { ErrorCode, ERROR_CODES } from '../../erros/errorCodes'
+
 export class AppError extends Error {
-  constructor(
-    public readonly mensagem: string,
-    public readonly statusCode: number = 400
-  ) {
-    super(mensagem)
+  constructor(public readonly errorCode: ErrorCode) {
+    super(errorCode.message)
     this.name = 'AppError'
+  }
+
+  get statusCode() {
+    return this.errorCode.status
+  }
+
+  get code() {
+    return this.errorCode.code
+  }
+
+  get mensagem() {
+    return this.errorCode.message
   }
 }
 
 export class NaoEncontradoError extends AppError {
-  constructor(recurso: string) {
-    super(`${recurso} não encontrado`, 404)
+  constructor(errorCode: ErrorCode = ERROR_CODES.REGISTRO_NAO_ENCONTRADO) {
+    super(errorCode)
   }
 }
 
 export class NaoAutorizadoError extends AppError {
-  constructor() { super('Não autorizado', 401) }
+  constructor(errorCode: ErrorCode = ERROR_CODES.NAO_AUTORIZADO) {
+    super(errorCode)
+  }
 }
 
 export class ProibidoError extends AppError {
-  constructor() { super('Sem permissão para esta ação', 403) }
+  constructor(errorCode: ErrorCode = ERROR_CODES.SEM_PERMISSAO) {
+    super(errorCode)
+  }
 }
 
 export class ConflitoError extends AppError {
-  constructor(mensagem: string) { super(mensagem, 409) }
+  constructor(errorCode: ErrorCode = ERROR_CODES.REGISTRO_JA_EXISTE) {
+    super(errorCode)
+  }
+}
+
+export class TokenInvalidoError extends AppError {
+  constructor(errorCode: ErrorCode = ERROR_CODES.TOKEN_INVALIDO) {
+    super(errorCode)
+  }
 }

@@ -1,22 +1,21 @@
 import bcrypt from 'bcrypt'
 import { usuariosRepository } from './usuarios.repository'
 import { ConflitoError } from '../../shared/errors/AppError'
+import { ERROR_CODES } from '../../erros/errorCodes'
 import { CriarUsuarioDto, AtualizarUsuarioDto, FiltroUsuarioDto } from './usuarios.dto'
 
 export const usuariosService = {
-
   async listar(filtros: FiltroUsuarioDto) {
     return usuariosRepository.listar(filtros)
   },
 
   async buscarPorId(id: number) {
-   
     return usuariosRepository.buscarPorId(id)
   },
 
   async criar(dto: CriarUsuarioDto) {
     const emailEmUso = await usuariosRepository.buscarPorEmail(dto.email)
-    if (emailEmUso) throw new ConflitoError('E-mail já cadastrado')
+    if (emailEmUso) throw new ConflitoError(ERROR_CODES.EMAIL_JA_CADASTRADO)
 
     const senhaHash = await bcrypt.hash(dto.senha, 10)
 
@@ -34,5 +33,4 @@ export const usuariosService = {
   },
 
   listarPerfis: () => usuariosRepository.listarPerfis(),
-
 }

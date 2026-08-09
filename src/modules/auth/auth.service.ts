@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { authRepository } from './auth.repository'
-import { NaoAutorizadoError, AppError } from '../../shared/errors/AppError'
+import { NaoAutorizadoError, TokenInvalidoError } from '../../shared/errors/AppError'
 import { LoginDto } from './auth.dto'
 
 function gerarToken(payload: object, expiracao: string) {
@@ -47,7 +47,7 @@ export const authService = {
       const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!)
 
       if (!isRefreshTokenPayload(decoded)) {
-        throw new AppError('Refresh token inválido ou expirado', 401)
+        throw new TokenInvalidoError()
       }
 
       const usuario = await authRepository.buscarPorId(decoded.sub)
@@ -60,7 +60,7 @@ export const authService = {
       }
       return { token: gerarToken(novoPayload, '8h') }
     } catch {
-      throw new AppError('Refresh token inválido ou expirado', 401)
+      throw new TokenInvalidoError()
     }
   },
 
