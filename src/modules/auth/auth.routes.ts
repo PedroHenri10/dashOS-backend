@@ -1,9 +1,9 @@
-import { Router } from 'express'
+import { FastifyPluginAsync } from 'fastify'
 import { authController } from './auth.controller'
 import { autenticar } from '../../shared/middlewares/auth.middleware'
 
-export const authRouter = Router()
-
-authRouter.post('/login',   authController.login)
-authRouter.post('/refresh', authController.refresh)
-authRouter.get('/me',       autenticar, authController.me) 
+export const authRoutes: FastifyPluginAsync = async (app) => {
+  app.post('/login', authController.login)
+  app.post('/refresh', authController.refresh)
+  app.get('/me', { preHandler: autenticar }, authController.me)
+} 

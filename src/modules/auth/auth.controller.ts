@@ -1,23 +1,27 @@
-import { Request, Response } from 'express'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { authService } from './auth.service'
 import { LoginSchema, RefreshSchema } from './auth.dto'
 import { ok } from '../../shared/types/response.types'
 
+type LoginRequest = FastifyRequest<{ Body: { email: string; senha: string } }>
+type RefreshRequest = FastifyRequest<{ Body: { refreshToken: string } }>
+type MeRequest = FastifyRequest
+
 export const authController = {
-  async login(req: Request, res: Response) {
-    const dto = LoginSchema.parse(req.body)
+  async login(request: LoginRequest, reply: FastifyReply) {
+    const dto = LoginSchema.parse(request.body)
     const resultado = await authService.login(dto)
-    return ok(res, resultado, 'Login realizado com sucesso')
+    return ok(reply, resultado, 'Login realizado com sucesso')
   },
 
-  async refresh(req: Request, res: Response) {
-    const { refreshToken } = RefreshSchema.parse(req.body)
+  async refresh(request: RefreshRequest, reply: FastifyReply) {
+    const { refreshToken } = RefreshSchema.parse(request.body)
     const resultado = await authService.refresh(refreshToken)
-    return ok(res, resultado)
+    return ok(reply, resultado)
   },
 
-  async me(req: Request, res: Response) {
-    const resultado = await authService.me(req.user!.sub)
-    return ok(res, resultado)
+  async me(request: MeRequest, reply: FastifyReply) {
+    const resultado = await authService.me(request.user!.sub)
+    return ok(reply, resultado)
   },
 }

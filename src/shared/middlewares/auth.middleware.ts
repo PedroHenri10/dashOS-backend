@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import jwt from 'jsonwebtoken'
 import { NaoAutorizadoError, ProibidoError } from '../errors/AppError'
 
@@ -8,9 +8,9 @@ export interface JwtPayload {
   perfil: string
 }
 
-declare global {
-  namespace Express {
-    interface Request { user?: JwtPayload }
+declare module 'fastify' {
+  interface FastifyRequest {
+    user?: JwtPayload
   }
 }
 
@@ -18,11 +18,15 @@ function isJwtPayload(value: unknown): value is JwtPayload {
   if (typeof value !== 'object' || value === null) return false
 
   const candidate = value as Partial<JwtPayload>
-  return typeof candidate.sub === 'number' && typeof candidate.nome === 'string' && typeof candidate.perfil === 'string'
+  return (
+    typeof candidate.sub === 'number' &&
+    typeof candidate.nome === 'string' &&
+    typeof candidate.perfil === 'string'
+  )
 }
 
-export function autenticar(req: Request, _res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization
+export async function autenticar(request: FastifyRequest, _reply: FastifyReply) {
+  const authHeader = request.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) throw new NaoAutorizadoError()
 
   const token = authHeader.split(' ')[1]
@@ -33,16 +37,14 @@ export function autenticar(req: Request, _res: Response, next: NextFunction) {
       throw new NaoAutorizadoError()
     }
 
-    req.user = decoded
-    next()
+    request.user = decoded
   } catch {
     throw new NaoAutorizadoError()
   }
 }
 
 export function exigirPerfil(...perfis: string[]) {
-  return (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user || !perfis.includes(req.user.perfil)) throw new ProibidoError()
-    next()
+  return async (request: FastifyRequest, _reply: FastifyReply) => {
+    if (!request.user || !perfis.includes(request.user.perfil)) throw new ProibidoError()
   }
 }

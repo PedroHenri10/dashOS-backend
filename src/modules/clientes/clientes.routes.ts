@@ -1,16 +1,12 @@
-import { Router } from 'express'
+import { FastifyPluginAsync } from 'fastify'
 import { autenticar } from '../../shared/middlewares/auth.middleware'
 import { clientesController } from './clientes.controller'
 
-export const clientesRouter = Router()
-
-clientesRouter.use(autenticar)
-
-clientesRouter.get('/',           clientesController.listar)
-clientesRouter.get('/:id',        clientesController.buscar)
-
-clientesRouter.post('/',          clientesController.criar)
-clientesRouter.put('/:id',        clientesController.atualizar)
-
-clientesRouter.delete('/:id',     clientesController.desativar)
-clientesRouter.patch('/:id/reativar', clientesController.reativar)
+export const clientesRoutes: FastifyPluginAsync = async (app) => {
+  app.get('/', { preHandler: autenticar }, clientesController.listar)
+  app.get<{ Params: { id: string } }>('/:id', { preHandler: autenticar }, clientesController.buscar)
+  app.post('/', { preHandler: autenticar }, clientesController.criar)
+  app.put<{ Params: { id: string } }>('/:id', { preHandler: autenticar }, clientesController.atualizar)
+  app.delete<{ Params: { id: string } }>('/:id', { preHandler: autenticar }, clientesController.desativar)
+  app.patch<{ Params: { id: string } }>('/:id/reativar', { preHandler: autenticar }, clientesController.reativar)
+}

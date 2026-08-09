@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { clientesService } from './clientes.service'
 import {
   CriarClienteSchema,
@@ -7,38 +7,42 @@ import {
 } from './clientes.dto'
 import { ok, criado, semConteudo, paginado } from '../../shared/types/response.types'
 
+type ListarRequest = FastifyRequest<{ Querystring: unknown }>
+type BuscarRequest = FastifyRequest<{ Params: { id: string } }>
+type CriarRequest = FastifyRequest<{ Body: unknown }>
+type AtualizarRequest = FastifyRequest<{ Params: { id: string }; Body: unknown }>
+
 export const clientesController = {
-
-  async listar(req: Request, res: Response) {
-    const filtros = FiltroClienteSchema.parse(req.query)
+  async listar(request: ListarRequest, reply: FastifyReply) {
+    const filtros = FiltroClienteSchema.parse(request.query)
     const { dados, total, pagina, limite } = await clientesService.listar(filtros)
-    return paginado(res, dados, { total, pagina, limite })
+    return paginado(reply, dados, { total, pagina, limite })
   },
 
-  async buscar(req: Request, res: Response) {
-    const cliente = await clientesService.buscarPorId(+req.params.id)
-    return ok(res, cliente)
+  async buscar(request: BuscarRequest, reply: FastifyReply) {
+    const cliente = await clientesService.buscarPorId(Number(request.params.id))
+    return ok(reply, cliente)
   },
 
-  async criar(req: Request, res: Response) {
-    const dto = CriarClienteSchema.parse(req.body)
+  async criar(request: CriarRequest, reply: FastifyReply) {
+    const dto = CriarClienteSchema.parse(request.body)
     const cliente = await clientesService.criar(dto)
-    return criado(res, cliente)
+    return criado(reply, cliente)
   },
 
-  async atualizar(req: Request, res: Response) {
-    const dto = AtualizarClienteSchema.parse(req.body)
-    const cliente = await clientesService.atualizar(+req.params.id, dto)
-    return ok(res, cliente)
+  async atualizar(request: AtualizarRequest, reply: FastifyReply) {
+    const dto = AtualizarClienteSchema.parse(request.body)
+    const cliente = await clientesService.atualizar(Number(request.params.id), dto)
+    return ok(reply, cliente)
   },
 
-  async desativar(req: Request, res: Response) {
-    await clientesService.desativar(+req.params.id)
-    return semConteudo(res)
+  async desativar(request: BuscarRequest, reply: FastifyReply) {
+    await clientesService.desativar(Number(request.params.id))
+    return semConteudo(reply)
   },
 
-  async reativar(req: Request, res: Response) {
-    const cliente = await clientesService.reativar(+req.params.id)
-    return ok(res, cliente, 'Cliente reativado com sucesso')
+  async reativar(request: BuscarRequest, reply: FastifyReply) {
+    const cliente = await clientesService.reativar(Number(request.params.id))
+    return ok(reply, cliente, 'Cliente reativado com sucesso')
   },
 }

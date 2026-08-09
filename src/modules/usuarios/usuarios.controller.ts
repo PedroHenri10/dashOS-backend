@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { usuariosService } from './usuarios.service'
 import {
   CriarUsuarioSchema,
@@ -7,39 +7,42 @@ import {
 } from './usuarios.dto'
 import { ok, criado, semConteudo, paginado } from '../../shared/types/response.types'
 
+type ListarRequest = FastifyRequest<{ Querystring: unknown }>
+type BuscarRequest = FastifyRequest<{ Params: { id: string } }>
+type CriarRequest = FastifyRequest<{ Body: unknown }>
+type AtualizarRequest = FastifyRequest<{ Params: { id: string }; Body: unknown }>
+
 export const usuariosController = {
-
-  async listar(req: Request, res: Response) {
-    const filtros = FiltroUsuarioSchema.parse(req.query)
+  async listar(request: ListarRequest, reply: FastifyReply) {
+    const filtros = FiltroUsuarioSchema.parse(request.query)
     const { dados, total, pagina, limite } = await usuariosService.listar(filtros)
-    return paginado(res, dados, { total, pagina, limite })
+    return paginado(reply, dados, { total, pagina, limite })
   },
 
-  async buscar(req: Request, res: Response) {
-    const usuario = await usuariosService.buscarPorId(+req.params.id)
-    return ok(res, usuario)
+  async buscar(request: BuscarRequest, reply: FastifyReply) {
+    const usuario = await usuariosService.buscarPorId(Number(request.params.id))
+    return ok(reply, usuario)
   },
 
-  async criar(req: Request, res: Response) {
-    const dto = CriarUsuarioSchema.parse(req.body)
+  async criar(request: CriarRequest, reply: FastifyReply) {
+    const dto = CriarUsuarioSchema.parse(request.body)
     const usuario = await usuariosService.criar(dto)
-    return criado(res, usuario)
+    return criado(reply, usuario)
   },
 
-  async atualizar(req: Request, res: Response) {
-    const dto = AtualizarUsuarioSchema.parse(req.body)
-    const usuario = await usuariosService.atualizar(+req.params.id, dto)
-    return ok(res, usuario)
+  async atualizar(request: AtualizarRequest, reply: FastifyReply) {
+    const dto = AtualizarUsuarioSchema.parse(request.body)
+    const usuario = await usuariosService.atualizar(Number(request.params.id), dto)
+    return ok(reply, usuario)
   },
 
-  async desativar(req: Request, res: Response) {
-    await usuariosService.desativar(+req.params.id)
-    return semConteudo(res)
+  async desativar(request: BuscarRequest, reply: FastifyReply) {
+    await usuariosService.desativar(Number(request.params.id))
+    return semConteudo(reply)
   },
 
-  async perfis(req: Request, res: Response) {
+  async perfis(_request: FastifyRequest, reply: FastifyReply) {
     const perfis = await usuariosService.listarPerfis()
-    return ok(res, perfis)
+    return ok(reply, perfis)
   },
-
 }

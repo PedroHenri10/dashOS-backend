@@ -1,23 +1,23 @@
-import { Response } from 'express'
+import { FastifyReply } from 'fastify'
 
-export function ok<T>(res: Response, dados: T, mensagem?: string) {
-  return res.status(200).json({ sucesso: true, dados, mensagem })
+export function ok<T>(reply: FastifyReply, dados: T, mensagem?: string) {
+  return reply.status(200).send({ sucesso: true, dados, mensagem })
 }
 
-export function criado<T>(res: Response, dados: T) {
-  return res.status(201).json({ sucesso: true, dados })
+export function criado<T>(reply: FastifyReply, dados: T) {
+  return reply.status(201).send({ sucesso: true, dados })
 }
 
-export function semConteudo(res: Response) {
-  return res.status(204).send()
+export function semConteudo(reply: FastifyReply) {
+  return reply.status(204).send()
 }
 
 export function paginado<T>(
-  res: Response,
+  reply: FastifyReply,
   dados: T[],
   paginacao: { total: number; pagina: number; limite: number }
 ) {
-  return res.status(200).json({
+  return reply.status(200).send({
     sucesso: true,
     dados,
     paginacao: {
