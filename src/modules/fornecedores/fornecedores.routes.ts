@@ -3,9 +3,6 @@ import { Perfil } from '@prisma/client'
 import { autenticar, exigirPerfil } from '../../shared/middlewares/auth.middleware'
 import { fornecedoresController } from './fornecedores.controller'
 
-// Consulta é liberada para Técnico e Administrador (ex.: ao registrar a origem
-// de uma peça). Cadastro, edição e inativação ficam restritos ao Administrador,
-// que absorveu essa responsabilidade do antigo perfil Atendente.
 export const fornecedoresRoutes: FastifyPluginAsync = async (app) => {
   app.get('/', { preHandler: autenticar }, fornecedoresController.listar)
   app.get<{ Params: { id: string } }>('/:id', { preHandler: autenticar }, fornecedoresController.buscar)
